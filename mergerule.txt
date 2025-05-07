@@ -1,0 +1,73 @@
+rule "Overlay all fields but local for Integration Profile, Import Profile, Combine and Merge Inventory"
+
+
+ when
+   merge
+ then
+
+   replace MARC."LDR"
+   remove MARC."0"XX excluding "001,009,086,09X"
+    remove MARC."086" if not exists subfield "2"
+   # Keeps 001 (record number--MMS ID for existing Alma records), 009 (possibly local),086 (local primo display setting for govdoc), 09X (local)
+   remove MARC."1"XX
+   remove MARC."2"XX excluding "246"
+   remove MARC."246" if not exists subfield "5"
+   # Keeps any 246 that includes a subfield 5
+   remove MARC."3"XX
+   remove MARC."4"XX
+   remove MARC."5"XX excluding "500,501,505,506,510,520,526,540,541,561,562,563,583,584,585,59X"
+   # Always keeps any 541, 561, 562, 563, 583, 584, 585, 59X fields with the idea that these will always be institution- or copy-specific, even if they don't include a $5. Keeps the 505 and 520 if they exist in case the incoming record does not include these--in which case the field from the original record is retained.
+      remove MARC."506" if not exists subfield "5"
+      remove MARC."526" if not exists subfield "5"
+      remove MARC."540" if not exists subfield "5"
+      remove MARC."563" if not exists subfield "5"
+      remove MARC."583" if not exists subfield "5"
+      remove MARC."585" if not exists subfield "5"
+   # Keeps 506, 526, 540, 541, 563, 583, and 585 only if they are institution- or copy-specific and include $5.
+
+   remove MARC."6"XX excluding "650,655,69X"
+     remove MARC."650" if not exists subfield "2"
+     remove MARC."655" if not exists subfield "5"
+   # Keeps all 69X fields. Keeps 655 fields only if they include $5. Keeps 650 fields only if they include $2.
+
+   remove MARC."7"XX excluding "700,710,711,730,740, 752, 773, 774, 79X"
+  #752 (Hierarchical place) is added for local usage for special collections
+      remove MARC."700" if not exists subfield "5"     
+      remove MARC."710" if not exists subfield "5"
+      remove MARC."711" if not exists subfield "5"
+      remove MARC."730" if not exists subfield "5"
+      remove MARC."740" if not exists subfield "5" 
+   # Keeps 700, 710, 711, 730, and 740only if they include $5.
+   #773, 774 are added 6/21/2024
+      remove MARC."8"XX excluding "830"
+  #added 830 to protect our local usage for series tracing.
+  # keep all 9XX
+
+   add MARC."0"XX excluding "001"
+   replace MARC."035" when MARC."035"."a" contains "OCoLC" excluding MARC."035"("9","9")
+   # Replaces the OCLC numbers in 035 with those from the incoming record, but retains other 035 numbers.
+   add MARC."1"XX
+   add MARC."2"XX
+   add MARC."3"XX
+   add MARC."4"XX 
+   add MARC."5"XX excluding "505,520"
+   add MARC."505" if does not exists
+   # add 505 if does not exist in the primary record
+   replace MARC."505" if exists
+   #if exists in the secondary record
+   #If the incoming record does not have a 505 and the existing record does, the 505 is retained.
+   replace MARC."520" if exists
+   #if exists in the secondary record
+   add MARC."520" if does not exists
+   # add 520 if does not exist in the primary record
+   # If the incoming record does not have a 520 and the existing record does, the 520 is retained.
+   add MARC."6"XX
+   add MARC."7"XX
+   add MARC."8"XX excluding "830"
+   replace MARC."830" if exists
+   add MARC."830" if does not exists
+   add MARC."9"XX excluding "915"
+
+      # Using remove then add to avoid situations like a 260 in one record and a 264 in another record resulting in both fields being retained.
+ 
+end
