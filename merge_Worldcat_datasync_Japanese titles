@@ -1,5 +1,4 @@
 rule "Worldcat Updates for Japanese titles"
-#rule is created for Worldcat Updates in November 2024 by Josh and Minyoung
 #This rule overlay specific fields to protect locally enhanced bibliographic data for Japanese titles.
 
 #January 2025 - 520 is added to updated, by Minyoung 
