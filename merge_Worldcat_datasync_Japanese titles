@@ -1,0 +1,73 @@
+rule "Worldcat Updates for Japanese titles"
+#rule is created for Worldcat Updates in November 2024 by Josh and Minyoung
+#This rule overlay specific fields to protect locally enhanced bibliographic data for Japanese titles.
+
+#January 2025 - 520 is added to updated, by Minyoung 
+#March, 2025 - lots of 5xx are added after discussion at the cataloging meeting, by Minyoung
+#April, 2025 - 2xx won't be touched as 264 is locally enhanced; 4xx is added to replace 490; 856 second indicator # is added not to import it
+
+when 
+merge
+then 
+
+ replace MARC."LDR"
+ remove MARC."0"XX excluding "001,009,086,09X"  
+ add MARC."0"XX excluding "001"
+ replace MARC."035" when MARC."035"."a" contains "OCoLC" excluding MARC."035"("9","9")
+ remove MARC."3"XX 
+  add MARC."3"XX 
+ remove MARC."4"XX    #added to update 490, April 2025
+  add MARC."4"XX     #added to update 490, April 2025
+   add MARC."502" if does not exists 
+   add MARC."504" if does not exists   
+   add MARC."505" if does not exists
+   add MARC."508" if does not exists 
+   add MARC."510" if does not exists
+   add MARC."511" if does not exists
+   add MARC."515" if does not exists
+   add MARC."518" if does not exists
+   add MARC."520" if does not exists        
+   add MARC."521" if does not exists
+   add MARC."525" if does not exists
+   add MARC."532" if does not exists
+   add MARC."538" if does not exists
+   add MARC."546" if does not exists
+   add MARC."555" if does not exists
+   add MARC."586" if does not exists
+   add MARC."588" if does not exists 
+   replace MARC."502" if exists
+   replace MARC."504" if exists
+   replace MARC."505" if exists
+   replace MARC."508" if exists
+   replace MARC."510" if exists
+   replace MARC."511" if exists
+   replace MARC."515" if exists
+   replace MARC."518" if exists
+   replace MARC."520" if exists
+   replace MARC."521" if exists
+   replace MARC."525" if exists
+   replace MARC."532" if exists
+   replace MARC."538" if exists
+   replace MARC."546" if exists
+   replace MARC."555" if exists
+   replace MARC."586" if exists
+   replace MARC."588" if exists
+
+ remove MARC."6"XX excluding "650,655"
+    remove MARC."650" if not exists subfield "2"      #protect 650, 655 for DCG project
+    remove MARC."655" if not exists subfield "5" 
+ add MARC."6"XX
+  
+ remove MARC."8"XX
+ add MARC."8"XX excluding "830,856,880"
+
+ add MARC."830" if does not exists 
+ replace MARC."830" if exists
+
+ add MARC."856" excluding second indicator " ,0"   #added to declutter 856 links, March 2025 
+  
+ add MARC."880" if does not exists   #880 is added if Alma record doesn't have it, December 2024 
+
+ add MARC."915"    #add 915 for worldcat updates records 
+
+end
