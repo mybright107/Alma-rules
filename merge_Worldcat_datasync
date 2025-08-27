@@ -1,6 +1,5 @@
 rule "Worldcat Updates"
 #rule does not update the 5xx fields (except for 505) to ensure that 5xx notes for titles in special collections are handled with extra care
-#rule is created for Worldcat Updates in September 2024 by Josh and Minyoung
 #ruie is updated after the testing/discussion with catalogers in November 2024
 
 
