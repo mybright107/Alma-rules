@@ -1,0 +1,83 @@
+rule "Worldcat Updates"
+#rule does not update the 5xx fields (except for 505) to ensure that 5xx notes for titles in special collections are handled with extra care
+#rule is created for Worldcat Updates in September 2024 by Josh and Minyoung
+#ruie is updated after the testing/discussion with catalogers in November 2024
+
+
+when 
+merge
+then 
+
+  replace MARC."LDR"
+  remove MARC."0"XX excluding "001,009,084,086,09X"
+  remove MARC."086" if not exists subfield "2"
+  replace MARC."1"XX 
+  remove MARC."2"XX excluding "246"
+  remove MARC."246" if not exists subfield "5"
+  remove MARC."3"XX
+  replace MARC."4"XX 
+  #keep all 5xx
+  remove MARC."6"XX excluding "650,655"
+    remove MARC."650" if not exists subfield "2"    
+    remove MARC."655" if not exists subfield "5"   
+  remove MARC."7"XX excluding "700,710,711,730,740, 752,773,774,79X" 
+    #752 (Hierarchical place) is added for local usage for special collections
+      remove MARC."700" if not exists subfield "5"     
+      remove MARC."710" if not exists subfield "5"
+      remove MARC."711" if not exists subfield "5"
+      remove MARC."730" if not exists subfield "5"
+      remove MARC."740" if not exists subfield "5" 
+         # Keeps 700, 710, 711, 730, 740, and 79X only if they include $5.
+   remove MARC."8"XX excluding "830,856"
+  
+   add MARC."0"XX excluding "001"
+   replace MARC."035" when MARC."035"."a" contains "OCoLC" excluding MARC."035"("9","9")   
+   add MARC."1"XX
+   add MARC."2"XX
+   add MARC."3"XX 
+   add MARC."300" if does not exists
+   add MARC."4"XX
+   add MARC."502" if does not exists 
+   add MARC."504" if does not exists   
+   add MARC."505" if does not exists
+   add MARC."508" if does not exists 
+   add MARC."510" if does not exists
+   add MARC."511" if does not exists
+   add MARC."515" if does not exists
+   add MARC."518" if does not exists
+   add MARC."520" if does not exists        
+   add MARC."521" if does not exists
+   add MARC."525" if does not exists
+   add MARC."532" if does not exists
+   add MARC."538" if does not exists
+   add MARC."546" if does not exists
+   add MARC."555" if does not exists
+   add MARC."586" if does not exists
+   add MARC."588" if does not exists 
+   replace MARC."502" if exists
+   replace MARC."504" if exists
+   replace MARC."505" if exists
+   replace MARC."508" if exists
+   replace MARC."510" if exists
+   replace MARC."511" if exists
+   replace MARC."515" if exists
+   replace MARC."518" if exists
+   replace MARC."520" if exists
+   replace MARC."521" if exists
+   replace MARC."525" if exists
+   replace MARC."532" if exists
+   replace MARC."538" if exists
+   replace MARC."546" if exists
+   replace MARC."555" if exists
+   replace MARC."586" if exists
+   replace MARC."588" if exists
+  #lots of 5xx tags are added after discussion at the cataloging meeting, Minyoung, March 2025
+   add MARC."6"XX
+   add MARC."7"XX
+   add MARC."8"XX excluding "830,856"
+   add MARC."856" excluding second indicator "0" #added to declutter 856 links, March 2025
+   replace MARC."830" if exists
+   add MARC."830" if does not exists
+   add MARC."915"
+   #add 915 for worldcat updates records 
+end
