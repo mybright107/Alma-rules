@@ -1,0 +1,25 @@
+rule "fix 035 for worldcat updates incoming records" 
+#removing leading zeros in 035 for the titles to be updated via Worldcat updates
+#this rule is used in Worldcat datasync import profiles as a norm rule process along with Junk norm rule
+
+
+when 
+    TRUE
+then 
+    replaceContents "035.*.(OCoLC)0000000" with "(OCoLC)"
+    replaceContents "035.*.(OCoLC)000000" with "(OCoLC)"
+    replaceContents "035.*.(OCoLC)00000" with "(OCoLC)"
+    replaceContents "035.*.(OCoLC)0000" with "(OCoLC)"
+    replaceContents "035.*.(OCoLC)000" with "(OCoLC)"
+    replaceContents "035.*.(OCoLC)00" with "(OCoLC)"
+    replaceContents "035.*.(OCoLC)0" with "(OCoLC)"
+end
+
+rule "Find and remove duplicate 500 fields" 
+# Delete duplicate 500 fields
+# Added by MC, April 2025
+when 
+        (TRUE) 
+    then 
+        correctDuplicateFields "500" 
+end
