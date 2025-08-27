@@ -1,0 +1,100 @@
+rule "Brief 01 - 008 language and year"
+# Note:
+# 1. The priority and the setting of the brief level works as follows:
+#    The higher priority happens before the lower priority (priority 2 before priority 1)
+#    The rule will continue through all of the priorities until it reaches the last one for which is is "satisfied"
+# 2. The higher the brief_level -> the more complete the record
+#    The lower the brief_level -> the more incomplete the record
+#    (Brief level 10 is more complete than brief level 9)
+priority 1 
+when
+ existsControl "008.{35,3}.   " OR existsControl "008.{7,4}.   "
+then
+    set brief_level."01"
+end
+
+rule "Brief 02 - no 260 or 264"
+priority 2
+when
+   (not exists "260" AND  not existsControl "LDR.{7,1}.c") 
+    AND  
+  (not exists "264" AND not existsControl "LDR.{7,1}.c") 
+then
+    set brief_level."02"
+end
+
+
+rule "Brief 03 - no 300"
+priority 3
+when
+   not exists "300.a.*" AND not existsControl "LDR.{7,1}.s"
+then
+    set brief_level."03"
+end
+
+
+rule "Brief 04 - no OCN"
+priority 4
+when
+    not exists "035.a.(OCoLC)*"
+then
+    set brief_level."04"
+end
+
+
+rule "Brief 05 - no 6xx"
+priority 5
+when
+    exists "040.a.CSL" AND not exists "6**.a.*"
+then
+    set brief_level."05"
+end
+
+
+rule "Brief 06 - non-English"
+priority 6
+when
+    exists "040.b.*" AND not exists "040.b.eng"
+then
+    set brief_level."06"
+end
+
+
+
+rule "Brief 07 - obsolete"
+priority 7
+when
+   exists "440.a.*" OR exists "245.h.*"
+then
+    set brief_level."07"
+end
+
+
+rule "Brief 08 - no 33x"
+priority 8
+when
+    not exists "33*.a.*"
+then
+    set brief_level."08"
+end
+
+rule "Brief 9 - accessibility"
+priority 9
+when
+    (not exists "341.a.*" AND existsControl "007.{00,1}.m")
+    OR
+    (not exists "341.a.*" AND existsControl "007.{00,1}.v")
+    OR 
+    (not exists "532.a.*" AND exists "341.a.*")
+then
+	set brief_level."09"
+end
+
+
+rule "Brief 10 catch-all default"
+priority 10
+when
+	TRUE
+then
+	set brief_level."10"
+end
