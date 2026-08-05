@@ -1,0 +1,6 @@
+rule "remove 004"  #in the holding - prep for LHR Publishing job
+when
+   (TRUE)
+then
+   removeControlField "004"
+end
