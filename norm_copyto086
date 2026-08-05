@@ -1,0 +1,33 @@
+rule "Copy 050 to 086 (LC call number) and add 2.local to 086 - Priority 1"
+when
+(exists "050") AND (not exists "086")
+then
+copyField "050" to "086"
+addSubField "086.2.local"
+end
+
+rule "Copy 090 to 086 (local call number) and add 2.local to 086 - Priority 2"
+when
+(exists "090") AND (not exists "086")
+then
+copyField "090" to "086"
+addSubField "086.2.local"
+end
+
+rule "Copy 099 to 086 (local free-text call number) and add 2.local to 086 - Priority 3"
+when
+(exists "099") AND (not exists "086")
+then
+copyField "099" to "086"
+addSubField "086.2.local"
+end
+
+rule "Add empty 086 if 050, 090, and 099 all missing and 086 missing - Fallback"
+when
+(not exists "050") AND (not exists "090") AND (not exists "099") AND (not exists "086")
+then
+addField "086.a.California State Documents"
+addSubField "086.2.local"
+end
+
+#added priority rules 2-3 and fallback rule by Minyoung 07/28/2026
