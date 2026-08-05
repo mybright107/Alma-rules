@@ -1,0 +1,7 @@
+rule "Move subfields a,b,c,d to end of 853 to put $8 first"
+when
+(TRUE) 
+then 
+     moveSubfieldsToEndOfField "853" "abcdyij" 
+
+end
