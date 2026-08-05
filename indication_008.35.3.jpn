@@ -1,0 +1,12 @@
+rule "worldcat updates for JPN language titles excluding serials"
+when
+       (not existsControl "008.{35,3}.jpn") OR 
+       (existsControl "LDR.{7,1}.s") OR 
+       (existsControl "LDR.{7,1}.i")
+then
+     set indication."true"
+end
+
+#rule is used for the import profile Worldcat updates for Japanese language titles, which will filter out the records have 008 NOT jpn.
+#rule is updated by Minyoung 12/3/2025, 12/15/2025. This will also filer out serials records
+#true means incoming record will be rejected before import
