@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+  <xsl:output method="xml" indent="yes"/>
+  <xsl:strip-space elements="*"/>
+
+  <!-- helpers -->
+  <xsl:variable name="UPPER" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'"/>
+  <xsl:variable name="lower" select="'abcdefghijklmnopqrstuvwxyz'"/>
+
+  <!-- identity -->
+  <xsl:template match="@* | node()">
+    <xsl:copy><xsl:apply-templates select="@* | node()"/></xsl:copy>
+  </xsl:template>
+
+
+  <!-- ===== 583 normalization (only when $5 CLSU is present) ===== -->
+  <!-- Remove the predicate [...] to apply to all 583s -->
+  <xsl:template match="datafield[@tag='583' and subfield[@code='5' and normalize-space(.)='CLSU']]">
+    <datafield tag="583" ind1="1" ind2="{@ind2}">
+      <xsl:apply-templates select="subfield"/>
+      <!-- ensure $2 pda exists -->
+      <xsl:if test="not(subfield[@code='2'])">
+        <subfield code="2">pda</subfield>
+      </xsl:if>
+    </datafield>
+  </xsl:template>
+
+  <!-- trim all 583 subfields by default -->
+  <xsl:template match="datafield[@tag='583']/subfield">
+    <xsl:copy>
+      <xsl:apply-templates select="@*"/>
+      <xsl:value-of select="normalize-space(.)"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- $a -->
+  <xsl:template match="datafield[@tag='583']/subfield[@code='a']">
+    <subfield code="a">committed to retain</subfield>
+  </xsl:template>
+
+  <!-- $f -> SCELC Shared Print -->
+  <xsl:template match="datafield[@tag='583']/subfield[@code='f']">
+    <xsl:variable name="fval" select="translate(normalize-space(.), $UPPER, $lower)"/>
+    <subfield code="f">
+      <xsl:choose>
+        <xsl:when test="contains($fval,'scelc')">SCELC Shared Print</xsl:when>
+        <xsl:otherwise><xsl:value-of select="normalize-space(.)"/></xsl:otherwise>
+      </xsl:choose>
+    </subfield>
+  </xsl:template>
+
+  <!-- $u canonical; upgrade http->https otherwise -->
+  <xsl:template match="datafield[@tag='583']/subfield[@code='u']">
+    <xsl:variable name="uval" select="normalize-space(.)"/>
+    <xsl:variable name="loweru" select="translate($uval, $UPPER, $lower)"/>
+    <subfield code="u">
+      <xsl:choose>
+        <xsl:when test="contains($loweru,'scelc.org')">https://scelc.org/libraries/shared-print</xsl:when>
+        <xsl:when test="starts-with($loweru,'http://')">
+          <xsl:value-of select="concat('https://', substring($uval,8))"/>
+        </xsl:when>
+        <xsl:otherwise><xsl:value-of select="$uval"/></xsl:otherwise>
+      </xsl:choose>
+    </subfield>
+  </xsl:template>
+
+  <!-- $z -->
+  <xsl:template match="datafield[@tag='583']/subfield[@code='z']">
+    <xsl:variable name="zval" select="translate(normalize-space(.), $UPPER, $lower)"/>
+    <subfield code="z">
+      <xsl:choose>
+        <xsl:when test="contains($zval,'retain') and contains($zval,'scelc')">retain for SCELC</xsl:when>
+        <xsl:otherwise><xsl:value-of select="normalize-space(.)"/></xsl:otherwise>
+      </xsl:choose>
+    </subfield>
+  </xsl:template>
+
+  <!-- $2 -->
+  <xsl:template match="datafield[@tag='583']/subfield[@code='2']">
+    <subfield code="2">pda</subfield>
+  </xsl:template>
+
+  <!-- $5 -> CLSU -->
+  <xsl:template match="datafield[@tag='583']/subfield[@code='5']">
+    <subfield code="5">CLSU</subfield>
+  </xsl:template>
+
+</xsl:stylesheet>
