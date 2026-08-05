@@ -1,0 +1,6 @@
+rule "Has 910 SpColProtectLocalFields"
+    when
+       (exists "910.a.*SpColProtectLocalFields*")
+    then
+        set indication."true"
+end
