@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+  <xsl:output method="xml" indent="yes"/>
+
+  <!-- Identity template: copy everything by default -->
+  <xsl:template match="@* | node()">
+    <xsl:copy>
+      <xsl:apply-templates select="@* | node()"/>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- Main record template -->
+  <xsl:template match="record">
+    <xsl:copy>
+      <xsl:apply-templates select="@*" />
+      <!-- Leader -->
+      <xsl:apply-templates select="leader"/>
+      <!-- Controlfields in original order -->
+      <xsl:apply-templates select="controlfield"/>
+      <!-- Sorted datafields -->
+      <xsl:apply-templates select="datafield">
+        <!-- Primary sort: by tag (numeric) -->
+        <xsl:sort select="@tag" data-type="number" order="ascending"/>
+        <!-- Secondary sort: by ind2 (string compare is okay here) -->
+        <xsl:sort select="@ind2" data-type="number" order="ascending"/>
+      </xsl:apply-templates>
+    </xsl:copy>
+  </xsl:template>
+
+</xsl:stylesheet>
