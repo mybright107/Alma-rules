@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<xsl:output method="xml" indent="yes"/>
+<xsl:strip-space elements="*"/>
+
+<!-- Identity transform: copy everything unchanged unless overridden below -->
+<xsl:template match="@*|node()">
+    <xsl:copy>
+        <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+</xsl:template>
+
+
+<!-- Rule 2: match the PARENT of the 856-40 fields directly, whatever it's called -->
+<xsl:template match="*[datafield[@tag='856' and @ind1='4' and @ind2='0']]">
+    <xsl:copy>
+        <xsl:apply-templates select="@*"/>
+        <xsl:apply-templates select="node()[not(self::datafield[@tag='856' and @ind1='4' and @ind2='0'])]"/>
+
+        <!-- Pass 1: emit the ca.gov 856-40 field(s) FIRST -->
+        <xsl:for-each select="datafield[@tag='856' and @ind1='4' and @ind2='0'][subfield[@code='u'][contains(., 'ca.gov')]]">
+            <xsl:call-template name="dedupe-u"/>
+        </xsl:for-each>
+
+        <!-- Pass 2: emit all remaining (non-ca.gov) 856-40 fields after, original order -->
+        <xsl:for-each select="datafield[@tag='856' and @ind1='4' and @ind2='0'][not(subfield[@code='u'][contains(., 'ca.gov')])]">
+            <xsl:call-template name="dedupe-u"/>
+        </xsl:for-each>
+    </xsl:copy>
+</xsl:template>
+
+<!-- Rebuild one 856 40 field, keeping only ONE $u:
+     the ca.gov one if present, otherwise the first $u -->
+<xsl:template name="dedupe-u">
+    <xsl:variable name="cagov_u" select="subfield[@code='u'][contains(., 'ca.gov')][1]"/>
+    <xsl:variable name="first_u" select="subfield[@code='u'][1]"/>
+    <xsl:variable name="keep_id">
+        <xsl:choose>
+            <xsl:when test="$cagov_u"><xsl:value-of select="generate-id($cagov_u)"/></xsl:when>
+            <xsl:otherwise><xsl:value-of select="generate-id($first_u)"/></xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    <datafield tag="856" ind1="{@ind1}" ind2="{@ind2}">
+        <xsl:for-each select="subfield">
+            <xsl:choose>
+                <xsl:when test="@code='u'">
+                    <xsl:if test="generate-id(.) = $keep_id">
+                        <xsl:copy-of select="."/>
+                    </xsl:if>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy-of select="."/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </datafield>
+</xsl:template>
+
+</xsl:stylesheet>
