@@ -1,0 +1,41 @@
+rule "step1: copy the 245-linked 880 to TMP"
+priority 100
+when
+    (exists "880.6.245*")
+then
+    copyField "880" to "TMP" if (exists "880.6.245*")
+end
+rule "step2: remove only the 245-linked 880"
+priority 90
+when
+    (exists "880.6.245*")
+then
+    removeField "880" if (exists "880.6.245*")
+end
+rule "step3: clean up TMP - drop $6, ensure trailing period"
+priority 80
+when
+    (exists "TMP.a.*")
+then
+    removeSubField "TMP.6"
+    suffix "TMP.a" with "." if (not exists "TMP.a.*.")
+end
+rule "step4: remove old placeholder 245"
+priority 70
+when
+    (exists "245.a.<*")
+then
+    removeField "245"
+end
+rule "step5: rename TMP to 245"
+priority 60
+when
+    (TRUE)
+then
+    changeField "TMP" to "245" if (exists "TMP.a.*")
+end
+
+#JoVE 245 Title fix - 880 Linkage
+#created by Minyoung 7/14/2026
+#this rule is used in the normalization process (MC - Normalize 245, 856 for JoVE and O'Reilly) and added to the JoVE Import profiles
+#this rule is also added to the O'Reilly Import profiles 08/05/2026
