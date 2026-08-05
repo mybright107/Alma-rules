@@ -1,0 +1,126 @@
+#normalization process for bibonsave includes two normalization rules--remove junk tags (drool) and reorder numerically (xsl)
+#this rule here is Remove junk tags (drool)
+
+rule "Remove junk tags"
+
+priority 10
+when
+  (TRUE)
+then
+  removeField "012"
+  removeField "029"
+  removeField "263"
+  removeField "265"
+  removeField "350"
+  removeField "359"
+  removeField "596"
+  removeField "598"
+  removeField "653"
+  removeField "654"
+  removeField "690"
+  removeField "691"
+  removeField "695"
+  removeField "696"
+  removeField "697"
+  removeField "698"
+  removeField "699"
+  removeField "720"
+  removeField "850"
+  removeField "851"
+  removeField "882"
+  removeField "938"
+   removeField "600" if ( exists "600.{*,1}" ) 
+  removeField "600" if ( exists "600.{*,3}" ) 
+  removeField "600" if ( exists "600.{*,4}" ) 
+  removeField "600" if ( exists "600.{*,5}" ) 
+  removeField "600" if ( exists "600.{*,6}" ) 
+  removeField "600" if ( exists "600.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*") 
+  removeField "610" if ( exists "610.{*,1}" ) 
+  removeField "610" if ( exists "610.{*,3}" ) 
+  removeField "610" if ( exists "610.{*,4}" ) 
+  removeField "610" if ( exists "610.{*,5}" ) 
+  removeField "610" if ( exists "610.{*,6}" ) 
+  removeField "610" if ( exists "610.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*") 
+  removeField "611" if ( exists "611.{*,1}" ) 
+  removeField "611" if ( exists "611.{*,3}" ) 
+  removeField "611" if ( exists "611.{*,4}" ) 
+  removeField "611" if ( exists "611.{*,5}" ) 
+  removeField "611" if ( exists "611.{*,6}" ) 
+  removeField "611" if ( exists "611.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*")
+  removeField "630" if ( exists "630.{*,1}" ) 
+  removeField "630" if ( exists "630.{*,3}" ) 
+  removeField "630" if ( exists "630.{*,4}" ) 
+  removeField "630" if ( exists "630.{*,5}" ) 
+  removeField "630" if ( exists "630.{*,6}" ) 
+  removeField "630" if ( exists "630.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*")
+  removeField "647" if ( exists "647.{*,1}" ) 
+  removeField "647" if ( exists "647.{*,3}" ) 
+  removeField "647" if ( exists "647.{*,4}" ) 
+  removeField "647" if ( exists "647.{*,5}" ) 
+  removeField "647" if ( exists "647.{*,6}" ) 
+  removeField "647" if ( exists "647.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*")
+  removeField "648" if ( exists "648.{*,1}" ) 
+  removeField "648" if ( exists "648.{*,3}" ) 
+  removeField "648" if ( exists "648.{*,4}" ) 
+  removeField "648" if ( exists "648.{*,5}" ) 
+  removeField "648" if ( exists "648.{*,6}" ) 
+  removeField "648" if ( exists "648.{*,7}" ) 
+  removeField "650" if ( exists "650.{*,1}" ) 
+  removeField "650" if ( exists "650.{*,3}" ) 
+  removeField "650" if ( exists "650.{*,4}" ) 
+  removeField "650" if ( exists "650.{*,5}" ) 
+  removeField "650" if ( exists "650.{*,6}" ) 
+  removeField "650" if (exists "650.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*|bisacsh|fmesh|msc|sao|rero|kao")
+  removeField "651" if ( exists "651.{*,1}" ) 
+  removeField "651" if ( exists "651.{*,3}" ) 
+  removeField "651" if ( exists "651.{*,4}" ) 
+  removeField "651" if ( exists "651.{*,5}" ) 
+  removeField "651" if ( exists "651.{*,6}" ) 
+  removeField "651" if ( exists "651.{*,7}.2.nli|gnd|gtt|swd|nbdbt|embne|cct|ram|rasuqam|bidex|larpcal|stw|sfit|bcl|jlabsh*")
+  removeField "655" if ( exists "655.{*,1}" ) 
+  removeField "655" if ( exists "655.{*,3}" ) 
+  removeField "655" if ( exists "655.{*,4}" ) 
+  removeField "655" if ( exists "655.{*,5}" ) 
+  removeField "655" if ( exists "655.{*,6}" ) 
+  removeField "655" if (exists "655.{*,7}.2.rvmgf|henn|gnd|tbfbne|swd|rasuqam|qlsp|nli|ukslc")
+  removeField "856" if (exists "856.{*,*}.u.utoronto")
+  removeField "880" if (exists "880.{*,7}.2.jlabsh*")
+end 
+
+
+rule "remove fields with $5s not relevant to USC"
+when
+exists "5**"
+then
+addSubField "5**.5.TEMP" if (not exists "5**.5.*")
+removeField "5**" if (not exists "5**.5.CLSU|CaLa*|CLSU*|TEMP*")
+removeSubField "5**.5" if (exists "5**.5.TEMP")
+end
+
+rule "remove 6XXs with $5s not relevant to USC"
+when
+exists "6**"
+then
+addSubField "6**.5.TEMP" if (not exists "6**.5.*")
+removeField "6**" if (not exists "6**.5.CLSU|CaLa*|CLSU*|TEMP*")
+removeSubField "6**.5" if (exists "6**.5.TEMP")
+end
+
+rule "remove 7XXs with $5s not relevant to USC"
+when
+exists "7**"
+then
+addSubField "7**.5.TEMP" if (not exists "7**.5.*")
+removeField "7**" if (not exists "7**.5.CLSU|CaLa*|CLSU*|TEMP*")
+removeSubField "7**.5" if (exists "7**.5.TEMP")
+end
+
+
+rule "remove duplicate 590,590,710fields"
+priority 9
+when
+(TRUE) 
+then
+correctDuplicateFields "500,590,710"
+end
+
