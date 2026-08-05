@@ -1,0 +1,5 @@
+rule "zMBJ merge rule: do nothing"
+when
+merge
+then
+end
