@@ -1,0 +1,15 @@
+rule "empty 006"
+
+#DO NOT DELETE--used in e-caldocs import profiles
+#created by Minyoung September 2025
+#added 856,857 by Minyoung July 2026-filter out when the record doesn't have 857 AND 85640 as there is no URL to create access links
+
+
+when
+   (not existsControl "006.{6,1}.o")
+   OR
+   ((not exists "857") AND (not exists "856.{4,0}"))
+then
+  set indication."true"
+
+end
