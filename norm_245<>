@@ -36,6 +36,5 @@ then
 end
 
 #JoVE 245 Title fix - 880 Linkage
-#created by Minyoung 7/14/2026
 #this rule is used in the normalization process (MC - Normalize 245, 856 for JoVE and O'Reilly) and added to the JoVE Import profiles
 #this rule is also added to the O'Reilly Import profiles 08/05/2026
