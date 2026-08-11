@@ -1,9 +1,7 @@
 rule "Worldcat Updates for Japanese titles"
 #This rule overlay specific fields to protect locally enhanced bibliographic data for Japanese titles.
-
-#January 2025 - 520 is added to updated, by Minyoung 
-#March, 2025 - lots of 5xx are added after discussion at the cataloging meeting, by Minyoung
-#April, 2025 - 2xx won't be touched as 264 is locally enhanced; 4xx is added to replace 490; 856 second indicator # is added not to import it
+#March, 2025 - lots of 5xx are added after discussion at the cataloging meeting.
+#April, 2025 - 2xx won't be touched as 264 is locally enhanced; 4xx is added to replace 490; 856 second indicator # is added not to import it.
 
 when 
 merge
