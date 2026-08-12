@@ -1,0 +1,17 @@
+rule "Remove field 999"
+when
+  (TRUE)
+then 
+removeField "915" 
+removeField "916" 
+removeField "945" 
+removeField "952" if  (exists "952.a.*" )
+removeField "966" if  (exists "966.w.*" )
+removeField "987" 
+removeField "997" 
+removeField "999" 
+end
+
+#this rule is in BIGCAT normalization process and added to the Publishing profiles to GoldRush
+#945, 952, 966 are added after the onboarding meeting with BTAA
+#952 and 966 are updated to delete only when a specific subfield exists 03172026
