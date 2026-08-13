@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet version="3.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:f="http://example.org/isbn-functions"
+    exclude-result-prefixes="xs f">
+
+    <!--
+        PURPOSE:
+        Cleans and validates ISBNs in 020 $a when publishing to GOBI.
+
+        ACTIONS:
+        1. Removes leading labels such as ISBN, ISBN-10, and ISBN-13.
+        2. Removes spaces and hyphens from ISBNs in 020 $a.
+        3. Validates ISBN-10 and ISBN-13 check digits.
+        4. Removes 020 fields containing invalid values in $a.
+        5. Retains valid ISBN-13 fields.
+        6. Retains valid ISBN-10 fields only when the record contains
+           no valid ISBN-13.
+        7. If any valid ISBN-13 exists, removes all ISBN-10 fields.
+        8. Preserves other subfields, such as $q and $c.
+        9. Leaves 020 fields without $a unchanged.
+
+        EXAMPLES:
+        ISBN 978-1-71981-142-2 becomes 9781719811422.
+        ISBN 1-71981-142-3 becomes 1719811423.
+
+        When a record contains both ISBN formats, only valid
+        ISBN-13 fields are retained.
+    -->
+
+    <xsl:output
+        method="xml"
+        indent="yes"
+        encoding="UTF-8"/>
+
+    <!-- Copy all nodes unless another template changes them -->
+    <xsl:mode on-no-match="shallow-copy"/>
+
+    <!-- Remove a leading ISBN, ISBN-10, or ISBN-13 label -->
+    <xsl:function name="f:remove-label" as="xs:string">
+        <xsl:param name="value" as="xs:string?"/>
+
+        <xsl:sequence select="
+            replace(
+                normalize-space(string($value)),
+                '^\s*ISBN(-1[03])?\s*:?\s*',
+                '',
+                'i'
+            )
+        "/>
+    </xsl:function>
+
+    <!--
+        Extract and normalize an ISBN candidate.
+
+        This removes:
+        - a leading ISBN label;
+        - spaces;
+        - hyphens;
+        - qualifying text following the number.
+    -->
+    <xsl:function name="f:normalize-isbn" as="xs:string">
+        <xsl:param name="value" as="xs:string?"/>
+
+        <xsl:variable name="without-label"
+            select="f:remove-label($value)"/>
+
+        <xsl:variable name="candidate"
+            select="
+                replace(
+                    $without-label,
+                    '^(([0-9Xx][\s-]*){10,13}).*$',
+                    '$1'
+                )
+            "/>
+
+        <xsl:sequence select="
+            upper-case(
+                replace($candidate, '[\s-]', '')
+            )
+        "/>
+    </xsl:function>
+
+    <!-- Extract legacy qualifying information following the ISBN -->
+    <xsl:function name="f:extract-qualifier" as="xs:string">
+        <xsl:param name="value" as="xs:string?"/>
+
+        <xsl:variable name="without-label"
+            select="f:remove-label($value)"/>
+
+        <xsl:variable name="qualifier"
+            select="
+                normalize-space(
+                    replace(
+                        $without-label,
+                        '^([0-9Xx][\s-]*){10,13}',
+                        ''
+                    )
+                )
+            "/>
+
+        <!-- Remove a leading colon or opening parenthesis -->
+        <xsl:variable name="without-opening"
+            select="
+                replace(
+                    $qualifier,
+                    '^\s*[:(]\s*',
+                    ''
+                )
+            "/>
+
+        <!-- Remove a final closing parenthesis -->
+        <xsl:sequence select="
+            replace(
+                $without-opening,
+                '\s*\)\s*$',
+                ''
+            )
+        "/>
+    </xsl:function>
+
+    <!-- Validate the structure and check digit of an ISBN-10 -->
+    <xsl:function name="f:is-valid-isbn10" as="xs:boolean">
+        <xsl:param name="isbn" as="xs:string"/>
+
+        <xsl:sequence select="
+            if (not(matches($isbn, '^[0-9]{9}[0-9X]$')))
+            then false()
+            else
+                (
+                    sum(
+                        for $position in 1 to 9
+                        return
+                            xs:integer(
+                                substring($isbn, $position, 1)
+                            )
+                            * (11 - $position)
+                    )
+                    +
+                    (
+                        if (substring($isbn, 10, 1) = 'X')
+                        then 10
+                        else
+                            xs:integer(
+                                substring($isbn, 10, 1)
+                            )
+                    )
+                ) mod 11 = 0
+        "/>
+    </xsl:function>
+
+    <!-- Validate the structure, prefix, and check digit of an ISBN-13 -->
+    <xsl:function name="f:is-valid-isbn13" as="xs:boolean">
+        <xsl:param name="isbn" as="xs:string"/>
+
+        <xsl:sequence select="
+            if (not(matches($isbn, '^97[89][0-9]{10}$')))
+            then false()
+            else
+                sum(
+                    for $position in 1 to 13
+                    return
+                        xs:integer(
+                            substring($isbn, $position, 1)
+                        )
+                        *
+                        (
+                            if ($position mod 2 = 1)
+                            then 1
+                            else 3
+                        )
+                ) mod 10 = 0
+        "/>
+    </xsl:function>
+
+    <!-- Process each 020 field containing $a -->
+    <xsl:template match="
+        datafield[@tag = '020'][subfield[@code = 'a']]
+    ">
+        <xsl:variable name="isbn" as="xs:string"
+            select="
+                f:normalize-isbn(
+                    subfield[@code = 'a'][1]
+                )
+            "/>
+
+        <!-- Determine whether the record contains any valid ISBN-13 -->
+        <xsl:variable name="record-has-isbn13" as="xs:boolean"
+            select="
+                exists(
+                    root(.)//datafield[@tag = '020']
+                    /subfield[@code = 'a']
+                    [
+                        f:is-valid-isbn13(
+                            f:normalize-isbn(.)
+                        )
+                    ]
+                )
+            "/>
+
+        <!--
+            Retain:
+            - every valid ISBN-13; or
+            - a valid ISBN-10 when no valid ISBN-13 exists.
+        -->
+        <xsl:if test="
+            f:is-valid-isbn13($isbn)
+            or
+            (
+                f:is-valid-isbn10($isbn)
+                and not($record-has-isbn13)
+            )
+        ">
+            <xsl:copy>
+                <xsl:apply-templates select="@* | node()"/>
+            </xsl:copy>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- Normalize $a in every retained 020 -->
+    <xsl:template match="
+        datafield[@tag = '020']/subfield[@code = 'a']
+    ">
+        <xsl:variable name="qualifier" as="xs:string"
+            select="f:extract-qualifier(.)"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:value-of select="f:normalize-isbn(.)"/>
+        </xsl:copy>
+
+        <!--
+            Move a legacy qualifier from $a to $q only when
+            the field does not already contain $q.
+        -->
+        <xsl:if test="
+            $qualifier != ''
+            and not(../subfield[@code = 'q'])
+        ">
+            <subfield code="q">
+                <xsl:value-of select="$qualifier"/>
+            </subfield>
+        </xsl:if>
+    </xsl:template>
+
+</xsl:stylesheet>
